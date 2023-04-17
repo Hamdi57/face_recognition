@@ -1,0 +1,37 @@
+"""
+The image_files_in_folder function uses regex to filter filenames. Instead, you can filter by file extensions using the os.path.splitext function:
+ """
+
+
+def image_files_in_folder(folder):
+    return [os.path.join(folder, f) for f in os.listdir(folder) if os.path.isfile(os.path.join(folder, f)) and os.path.splitext(f)[1].lower() in ['.jpg', '.jpeg', '.png']]
+
+
+
+
+
+
+"""
+Also, instead of zip and itertools.repeat in the process_images_in_process_pool function, you can write more readable code using functools.partial:
+"""
+
+
+from functools import partial
+
+def process_images_in_process_pool(images_to_check, number_of_cpus, model, upsample):
+    if number_of_cpus == -1:
+        processes = None
+    else:
+        processes = number_of_cpus
+
+    # macOS will crash due to a bug in libdispatch if you don't use 'forkserver'
+    context = multiprocessing
+    if "forkserver" in multiprocessing.get_all_start_methods():
+        context = multiprocessing.get_context("forkserver")
+
+    pool = context.Pool(processes=processes)
+
+    test_image_partial = partial(test_image, model=model, upsample=upsample)
+
+    pool.map(test_image_partial, images_to_check)
+
